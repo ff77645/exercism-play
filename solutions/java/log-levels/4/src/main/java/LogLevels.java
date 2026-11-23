@@ -1,0 +1,24 @@
+public class LogLevels {
+
+    private static String[] splitLog(String logLine){
+        return logLine.split(":");
+    }
+    
+    public static String message(String logLine) {
+        String[] strs = splitLog(logLine);
+        String msg = strs[1].trim();
+        return msg;
+    }
+
+    public static String logLevel(String logLine) {
+        String[] strs = splitLog(logLine);
+        String level = strs[0];
+        return level.toLowerCase().substring(1,level.length() - 1);
+    }
+
+    public static String reformat(String logLine) {
+        String msg = message(logLine);
+        String level = logLevel(logLine);
+        return msg + " (" + level + ")";
+    }
+}
