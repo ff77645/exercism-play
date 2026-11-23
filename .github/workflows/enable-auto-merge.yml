@@ -1,18 +1,34 @@
-name: 自动开启 PR 自动合并
+name: PR 自动合并与分支清理
 on:
   pull_request:
-    types: [opened, reopened, synchronize]  # PR 创建、重新打开、或推送新提交时触发
+    types: [opened, reopened, synchronize, closed]  # 新增 closed
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: write        # 删除分支必需
+  pull-requests: write   # 开启自动合并必需
 
 jobs:
   enable-auto-merge:
+    if: github.event.action != 'closed'   # 新增：排除 closed 事件
     runs-on: ubuntu-latest
     steps:
       - name: Enable auto-merge
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  delete-merged-branch:                   # 新增 job
+    if: |
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete head branch
+        run: |
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${BRANCH}" \
+            || echo "分支可能已被删除或受保护，跳过"
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
