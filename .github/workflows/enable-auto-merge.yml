@@ -1,6 +1,6 @@
 name: PR 自动合并与分支清理
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize, closed]  # 新增 closed
 
 permissions:
